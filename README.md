@@ -1,7 +1,7 @@
 # Chudnovsky Algorithm
-Calculates pi using [Chudnovsky algorithm](https://en.wikipedia.org/wiki/Chudnovsky_algorithm)
+A parallel and non-parallel implementation of [Chudnovsky algorithm](https://en.wikipedia.org/wiki/Chudnovsky_algorithm) to calculate [pi](https://en.wikipedia.org/wiki/Pi)
 
-See http://www.craig-wood.com/nick/articles/pi-chudnovsky/ for details
+See [this post](http://www.craig-wood.com/nick/articles/pi-chudnovsky/) for details about the algorithm.
 
 ##Compile It
 
