@@ -49,6 +49,7 @@ public class ChudnovskyAlgorithm {
             b_sum = b_sum.add(k.multiply(a_k));
             k = k.add(Apfloat.ONE);
         }
+
         Apfloat total = new Apfloat(13591409l).multiply(a_sum).add(new Apfloat(545140134l).multiply(b_sum));
 
         Apfloat sqrtTenThousandAndFive = ApfloatMath.sqrt(new Apfloat(10005l, precision));
@@ -65,31 +66,35 @@ public class ChudnovskyAlgorithm {
 
     /**
      * Figures out which ranges {@link ChudnovskyAlgorithm#calculateTermSums(Range, long)} should act on.
-     * <p/>
-     * NOTE: the size of the list of ranges returned may be slightly higher than the numberOfRanges specified.  This has to do with the precision of the algorithm.
      *
-     * @param numberOfRanges About how many ranges you want returned.
+     * @param numberOfRanges How many ranges you want returned
      * @param precision
      * @return mutually exclusive ranges that can run executed in parallel.
      */
     public static List<Range> calculateTermRanges(long numberOfRanges, long precision) {
+        if(numberOfRanges <= 0) {
+            throw new IllegalArgumentException("Number of ranges should be positive.");
+        }
+
         List<Range> ranges = new ArrayList<Range>();
 
         Apfloat C = new Apfloat(640320l);
         Apfloat C3_OVER_24 = (C.multiply(C).multiply(C)).divide(new Apfloat(24, precision));
         Apfloat DIGITS_PER_TERM = ApfloatMath.log(C3_OVER_24.divide(new Apfloat(72, precision)), new Apfloat(10l));
 
-        long numberOfLoopsToRun = (new Apfloat(precision, precision)).divide(DIGITS_PER_TERM).add(Apfloat.ONE).longValue();
+        Long numberOfTerms = (new Apfloat(precision, precision)).divide(DIGITS_PER_TERM).ceil().longValue();
 
-        long rangeSize = numberOfLoopsToRun / numberOfRanges;
+        double rangeSize = numberOfTerms.doubleValue() / Long.valueOf(numberOfRanges).doubleValue();
 
-        for (int i = 0; i < numberOfLoopsToRun; i += rangeSize) {
-//            if(i+rangeSize+1 == numberOfLoopsToRun) {
-//                i++;
-//            }
+        for (double i = 0.0; i < numberOfTerms; i+=rangeSize) {
+            double f = (i + rangeSize);
 
-            long f = Math.min(i + rangeSize, numberOfLoopsToRun);
-            ranges.add(new Range(i, f));
+            long il = (long)i;
+            long fl = (long)f;
+
+            il = Math.min(il, numberOfTerms);
+            fl = Math.min(fl, numberOfTerms);
+            ranges.add(new Range(il, fl));
         }
         return ranges;
     }
@@ -117,7 +122,7 @@ public class ChudnovskyAlgorithm {
 
         // find the first term in the series
         Apfloat k = new Apfloat(range.initalK);
-        Apfloat a_k = ((k.longValue() % 2 == 0) ? Apfloat.ONE : negativeOne).multiply(ApintMath.factorial(6 * k.longValue())).precision(precision);
+        Apfloat a_k = ((k.longValue() % 2 == 0) ? Apfloat.ONE : negativeOne).multiply(ApintMath.factorial(6 * k.longValue())).precision(precision*2);
         Apfloat kFactorial = ApintMath.factorial(k.longValue());
         a_k = a_k.divide(ApintMath.factorial(three.multiply(k).longValue()).multiply(kFactorial.multiply(kFactorial).multiply(kFactorial)).multiply(ApfloatMath.pow(C, k.longValue() * 3)));
 
@@ -131,6 +136,11 @@ public class ChudnovskyAlgorithm {
             a_sum = a_sum.add(a_k);
             b_sum = b_sum.add(k.multiply(a_k));
             k = k.add(Apfloat.ONE);
+        }
+
+        if(range.initalK == range.finalK) {
+            a_sum = new Apfloat(0l);
+            b_sum = new Apfloat(0l);
         }
 
         List<Apfloat> termSums = new ArrayList<Apfloat>();
@@ -158,7 +168,7 @@ public class ChudnovskyAlgorithm {
         precision++;
         Apfloat total = new Apfloat(13591409l).multiply(a_sum).add(new Apfloat(545140134l).multiply(b_sum));
 
-        Apfloat sqrtTenThousandAndFive = ApfloatMath.sqrt(new Apfloat(10005l, precision));
+        Apfloat sqrtTenThousandAndFive = ApfloatMath.sqrt(new Apfloat(10005l, precision + 1));
         Apfloat pi = (new Apfloat(426880l).multiply(sqrtTenThousandAndFive).divide(total)).precision(precision);
 
         return pi;

@@ -14,7 +14,6 @@ import static org.junit.Assert.*;
  */
 public class ChudnovskyAlgorithmThreadedTest {
 
-
     public static final long precision = 25000l;
 
     @Test
@@ -31,7 +30,7 @@ public class ChudnovskyAlgorithmThreadedTest {
         List<Future<List<Apfloat>>> futures = new ArrayList<Future<List<Apfloat>>>(ranges.size());
         long startTime = System.nanoTime();
         for (final Range r : ranges) {
-            //System.out.println("range: " + r.initalK + " " + r.finalK);
+            //System.out.println("range: " + r);
 
             futures.add(executor.submit(new Callable<List<Apfloat>>() {
                 @Override
