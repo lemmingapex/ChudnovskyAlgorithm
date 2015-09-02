@@ -1,11 +1,14 @@
 package sw.chudnovskyalgorithm;
 
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apfloat.Apfloat;
 import org.apfloat.ApfloatMath;
 import org.apfloat.ApintMath;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.*;
 
 /*
  * @author scott
@@ -13,14 +16,13 @@ import java.util.List;
 public class ChudnovskyAlgorithm {
 
     /**
-     * Finds the mathematical constant pi to <code>precision</code> number of digits
+     * Finds the mathematical constant pi to <code>precision</code> number of digits. Single-threaded.
      *
      * @param precision desired for return value
      * @return mathematical constant pi
      * @see <a href="http://www.craig-wood.com/nick/articles/pi-chudnovsky/">http://www.craig-wood.com/nick/articles/pi-chudnovsky/</a> for details
      */
     public static Apfloat calculatePi(long precision) {
-        long startTime = System.nanoTime();
         // need one extra place for the 3, and one extra place for some rounding issues
         precision = precision + 2;
         Apfloat negativeOne = new Apfloat(-1l);
@@ -55,13 +57,54 @@ public class ChudnovskyAlgorithm {
         Apfloat sqrtTenThousandAndFive = ApfloatMath.sqrt(new Apfloat(10005l, precision));
         Apfloat pi = (new Apfloat(426880l).multiply(sqrtTenThousandAndFive).divide(total)).precision(precision - 1);
 
+        return pi;
+    }
+
+    /**
+     * Finds the mathematical constant pi to <code>precision</code> number of digits. Multi-threaded.
+     *
+     * @param precision desired for return value
+     * @param numberOfThreads to run in parallel
+     * @return mathematical constant pi
+     */
+    public static Apfloat calculatePi(final long precision, int numberOfThreads) {
+        List<Range> ranges = ChudnovskyAlgorithm.calculateTermRanges(numberOfThreads, precision);
+
+        ExecutorService executor = Executors.newFixedThreadPool(ranges.size());
+        List<Future<Pair<Apfloat, Apfloat>>> futures = new ArrayList<>(ranges.size());
+        long startTime = System.nanoTime();
+        for (final Range r : ranges) {
+            futures.add(executor.submit(new Callable<Pair<Apfloat, Apfloat>>() {
+                @Override
+                public Pair<Apfloat, Apfloat> call() throws Exception {
+                    return ChudnovskyAlgorithm.calculateTermSums(r, precision);
+                }
+            }));
+        }
+        executor.shutdown();
+        try {
+            executor.awaitTermination(10l, TimeUnit.MINUTES);
+        } catch (InterruptedException ie) {
+            ie.printStackTrace();
+            return null;
+        }
+
+        List<Pair<Apfloat, Apfloat>> termSums = new ArrayList<>(futures.size());
+
+        for (Future<Pair<Apfloat, Apfloat>> f : futures) {
+            try {
+                termSums.add(f.get());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
         long duration = (System.nanoTime() - startTime);
         if (duration > 0) {
             duration /= 1000000;
         }
-        System.out.println("execution time: " + duration + "ms");
+        //System.out.println("execution time: " + duration + "ms");
 
-        return pi;
+        return ChudnovskyAlgorithm.merge(termSums, precision);
     }
 
     /**
@@ -104,10 +147,9 @@ public class ChudnovskyAlgorithm {
      *
      * @param range     from {@link ChudnovskyAlgorithm#calculateTermRanges(long, long)}
      * @param precision desired for return value
-     * @return List of size 2.  Contains a_sum and a_sum.  To be feed into {@link ChudnovskyAlgorithm#merge(Apfloat, Apfloat, long)}.
+     * @return Pair contains a_sum and b_sum.  To be feed into {@link ChudnovskyAlgorithm#merge(List, long)} ;
      */
-    public static List<Apfloat> calculateTermSums(Range range, long precision) {
-        long startTime = System.nanoTime();
+    public static Pair<Apfloat, Apfloat> calculateTermSums(Range range, long precision) {
         // need one extra place for the 3, and one extra place for some rounding issues
         precision = precision + 2;
         Apfloat negativeOne = new Apfloat(-1l);
@@ -122,7 +164,8 @@ public class ChudnovskyAlgorithm {
 
         // find the first term in the series
         Apfloat k = new Apfloat(range.initalK);
-        Apfloat a_k = ((k.longValue() % 2 == 0) ? Apfloat.ONE : negativeOne).multiply(ApintMath.factorial(6 * k.longValue())).precision(precision*2);
+        // NOTE: need to push out the precision in this term by a bit for the division to work properly.  8% is probably too high, but should be a safe estimate
+        Apfloat a_k = ((k.longValue() % 2 == 0) ? Apfloat.ONE : negativeOne).multiply(ApintMath.factorial(6 * k.longValue())).precision((long) (precision*1.08));
         Apfloat kFactorial = ApintMath.factorial(k.longValue());
         a_k = a_k.divide(ApintMath.factorial(three.multiply(k).longValue()).multiply(kFactorial.multiply(kFactorial).multiply(kFactorial)).multiply(ApfloatMath.pow(C, k.longValue() * 3)));
 
@@ -143,28 +186,25 @@ public class ChudnovskyAlgorithm {
             b_sum = new Apfloat(0l);
         }
 
-        List<Apfloat> termSums = new ArrayList<Apfloat>();
-        termSums.add(a_sum);
-        termSums.add(b_sum);
-
-        long duration = (System.nanoTime() - startTime);
-        if (duration > 0) {
-            duration /= 1000000;
-        }
-        //System.out.println("execution time: " + duration + "ms");
-
-        return termSums;
+        return new ImmutablePair<>(a_sum, b_sum);
     }
 
     /**
      * Merges the results from {@link ChudnovskyAlgorithm#calculateTermSums(Range, long)}.
      *
-     * @param a_sum     cumulative sum of all the a terms
-     * @param b_sum     cumulative sum of all the b terms
+     * @param termSums  list of the pairs of a_ums and b_sums to merge
      * @param precision desired for return value
      * @return mathematical constant pi
      */
-    public static Apfloat merge(Apfloat a_sum, Apfloat b_sum, long precision) {
+    public static Apfloat merge(List<Pair<Apfloat, Apfloat>> termSums, long precision) {
+        Apfloat a_sum = new Apfloat(0l);
+        Apfloat b_sum = new Apfloat(0l);
+
+        for (Pair<Apfloat, Apfloat> termSum : termSums) {
+            a_sum = a_sum.add(termSum.getLeft());
+            b_sum = b_sum.add(termSum.getRight());
+        }
+
         precision++;
         Apfloat total = new Apfloat(13591409l).multiply(a_sum).add(new Apfloat(545140134l).multiply(b_sum));
 

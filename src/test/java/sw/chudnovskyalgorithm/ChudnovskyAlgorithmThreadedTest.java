@@ -14,58 +14,46 @@ import static org.junit.Assert.*;
  */
 public class ChudnovskyAlgorithmThreadedTest {
 
-    public static final long precision = 25000l;
-
     @Test
     public void testSingleThreaded() {
-        System.out.println("PI: " + ChudnovskyAlgorithm.calculatePi(precision) + "\n");
+        long precision = 200l;
+        System.out.println("single-threaded Pi with precision of " + precision + ": " + ChudnovskyAlgorithm.calculatePi(precision) + "\n");
     }
 
     @Test
     public void testMultiThreaded() {
-        List<Range> ranges = ChudnovskyAlgorithm.calculateTermRanges(4, precision);
-        System.out.println("number of ranges: " + ranges.size());
+        long precision = 200l;
+        int numberOfThreads = 4;
+        System.out.println("multi-threaded (" + numberOfThreads + " threads) Pi with precision of " + precision + ": " + ChudnovskyAlgorithm.calculatePi(precision, numberOfThreads) + "\n");
+    }
 
-        ExecutorService executor = Executors.newFixedThreadPool(ranges.size());
-        List<Future<List<Apfloat>>> futures = new ArrayList<Future<List<Apfloat>>>(ranges.size());
-        long startTime = System.nanoTime();
-        for (final Range r : ranges) {
-            //System.out.println("range: " + r);
+    @Test
+    public void testCompareSingleToMultiThreaded() {
+        for(long precision = 1; precision <= Math.pow(2, 17); precision*=2l) {
 
-            futures.add(executor.submit(new Callable<List<Apfloat>>() {
-                @Override
-                public List<Apfloat> call() throws Exception {
-                    return ChudnovskyAlgorithm.calculateTermSums(r, precision);
+            long startTime = System.nanoTime();
+            Apfloat singleThreadedPi = ChudnovskyAlgorithm.calculatePi(precision);
+            long duration = (System.nanoTime() - startTime);
+            if (duration > 0) {
+                duration /= 1000000;
+            }
+            System.out.println("single-threaded Pi with precision of " + precision + ": " + singleThreadedPi);
+            System.out.println("execution time: " + duration + "\n");
+
+            for (int numberOfThreads = 1; numberOfThreads <= 8; numberOfThreads++) {
+
+                startTime = System.nanoTime();
+                Apfloat multiThreadedPi = ChudnovskyAlgorithm.calculatePi(precision, numberOfThreads);
+                duration = (System.nanoTime() - startTime);
+                if (duration > 0) {
+                    duration /= 1000000;
                 }
-            }));
-        }
-        executor.shutdown();
-        try {
-            executor.awaitTermination(3l, TimeUnit.MINUTES);
-        } catch (InterruptedException ie) {
-            ie.printStackTrace();
-        }
+                System.out.println("multi-threaded (" + numberOfThreads + " threads) Pi with precision of " + precision + ": " + multiThreadedPi);
+                System.out.println("execution time: " + duration + "\n");
 
-        Apfloat a_sum = new Apfloat(0l);
-        Apfloat b_sum = new Apfloat(0l);
-
-        for (Future<List<Apfloat>> f : futures) {
-            try {
-                List<Apfloat> termSums = f.get();
-
-                a_sum = a_sum.add(termSums.get(0));
-                b_sum = b_sum.add(termSums.get(1));
-            } catch (Exception e) {
-                e.printStackTrace();
+                assertEquals(singleThreadedPi, multiThreadedPi);
             }
         }
-        long duration = (System.nanoTime() - startTime);
-        if (duration > 0) {
-            duration /= 1000000;
-        }
-
-        System.out.println("execution time: " + duration + "ms");
-
-        System.out.println("PI: " + ChudnovskyAlgorithm.merge(a_sum, b_sum, precision) + "\n");
     }
+
 }
