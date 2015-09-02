@@ -160,7 +160,7 @@ public class ChudnovskyAlgorithm {
         Apfloat six = new Apfloat(6l);
         Apfloat C = new Apfloat(640320l);
         Apfloat C3_OVER_24 = (C.multiply(C).multiply(C)).divide(new Apfloat(24, precision));
-        Apfloat DIGITS_PER_TERM = ApfloatMath.log(C3_OVER_24.divide(new Apfloat(72, precision)), new Apfloat(10l));
+        //Apfloat DIGITS_PER_TERM = ApfloatMath.log(C3_OVER_24.divide(new Apfloat(72, precision)), new Apfloat(10l));
 
         // find the first term in the series
         Apfloat k = new Apfloat(range.initalK);
