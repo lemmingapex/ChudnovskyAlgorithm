@@ -63,7 +63,7 @@ public class ChudnovskyAlgorithm {
     /**
      * Finds the mathematical constant pi to <code>precision</code> number of digits. Multi-threaded.
      *
-     * @param precision desired for return value
+     * @param precision       desired for return value
      * @param numberOfThreads to run in parallel
      * @return mathematical constant pi
      */
@@ -72,7 +72,6 @@ public class ChudnovskyAlgorithm {
 
         ExecutorService executor = Executors.newFixedThreadPool(ranges.size());
         List<Future<Pair<Apfloat, Apfloat>>> futures = new ArrayList<>(ranges.size());
-        long startTime = System.nanoTime();
         for (final Range r : ranges) {
             futures.add(executor.submit(new Callable<Pair<Apfloat, Apfloat>>() {
                 @Override
@@ -83,7 +82,7 @@ public class ChudnovskyAlgorithm {
         }
         executor.shutdown();
         try {
-            executor.awaitTermination(10l, TimeUnit.MINUTES);
+            executor.awaitTermination(30l, TimeUnit.MINUTES);
         } catch (InterruptedException ie) {
             ie.printStackTrace();
             return null;
@@ -98,11 +97,6 @@ public class ChudnovskyAlgorithm {
                 e.printStackTrace();
             }
         }
-        long duration = (System.nanoTime() - startTime);
-        if (duration > 0) {
-            duration /= 1000000;
-        }
-        //System.out.println("execution time: " + duration + "ms");
 
         return ChudnovskyAlgorithm.merge(termSums, precision);
     }
@@ -115,7 +109,7 @@ public class ChudnovskyAlgorithm {
      * @return mutually exclusive ranges that can run executed in parallel.
      */
     public static List<Range> calculateTermRanges(long numberOfRanges, long precision) {
-        if(numberOfRanges <= 0) {
+        if (numberOfRanges <= 0) {
             throw new IllegalArgumentException("Number of ranges should be positive.");
         }
 
@@ -129,11 +123,11 @@ public class ChudnovskyAlgorithm {
 
         double rangeSize = numberOfTerms.doubleValue() / Long.valueOf(numberOfRanges).doubleValue();
 
-        for (double i = 0.0; i < numberOfTerms; i+=rangeSize) {
+        for (double i = 0.0; i < numberOfTerms; i += rangeSize) {
             double f = (i + rangeSize);
 
-            long il = (long)i;
-            long fl = (long)f;
+            long il = (long) i;
+            long fl = (long) f;
 
             il = Math.min(il, numberOfTerms);
             fl = Math.min(fl, numberOfTerms);
@@ -165,7 +159,7 @@ public class ChudnovskyAlgorithm {
         // find the first term in the series
         Apfloat k = new Apfloat(range.initalK);
         // NOTE: need to push out the precision in this term by a bit for the division to work properly.  8% is probably too high, but should be a safe estimate
-        Apfloat a_k = ((k.longValue() % 2 == 0) ? Apfloat.ONE : negativeOne).multiply(ApintMath.factorial(6 * k.longValue())).precision((long) (precision*1.08));
+        Apfloat a_k = ((k.longValue() % 2 == 0) ? Apfloat.ONE : negativeOne).multiply(ApintMath.factorial(6 * k.longValue())).precision((long) (precision * 1.08));
         Apfloat kFactorial = ApintMath.factorial(k.longValue());
         a_k = a_k.divide(ApintMath.factorial(three.multiply(k).longValue()).multiply(kFactorial.multiply(kFactorial).multiply(kFactorial)).multiply(ApfloatMath.pow(C, k.longValue() * 3)));
 
@@ -181,7 +175,7 @@ public class ChudnovskyAlgorithm {
             k = k.add(Apfloat.ONE);
         }
 
-        if(range.initalK == range.finalK) {
+        if (range.initalK == range.finalK) {
             a_sum = new Apfloat(0l);
             b_sum = new Apfloat(0l);
         }
