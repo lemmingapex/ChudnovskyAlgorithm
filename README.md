@@ -5,5 +5,11 @@ See [this post](http://www.craig-wood.com/nick/articles/pi-chudnovsky/) for deta
 
 ## Run the tests
 
+### *nix
+
 ./gradlew clean  
 ./gradlew test -i
+
+### Windows
+./gradlew.bat clean  
+./gradlew.bat test -i
