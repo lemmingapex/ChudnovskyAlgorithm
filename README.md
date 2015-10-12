@@ -3,6 +3,7 @@ A parallel and non-parallel implementation of [Chudnovsky algorithm](https://en.
 
 See [this post](http://www.craig-wood.com/nick/articles/pi-chudnovsky/) for details about the algorithm.
 
-##Compile It
+## Run the tests
 
-./gradlew build
+./gradlew clean  
+./gradlew test -i
