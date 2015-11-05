@@ -29,23 +29,26 @@ public class ChudnovskyAlgorithmThreadedTest {
 
             long startTime = System.nanoTime();
             Apfloat singleThreadedPi = ChudnovskyAlgorithm.calculatePi(precision);
-            long duration = (System.nanoTime() - startTime);
-            if (duration > 0) {
-                duration /= 1000000;
+            long singleThreadedDuration = (System.nanoTime() - startTime);
+            if (singleThreadedDuration > 0) {
+                singleThreadedDuration /= 1000000;
             }
             System.out.println("single-threaded Pi with precision of " + precision + ": " + singleThreadedPi);
-            System.out.println("execution time: " + duration + " ms\n");
+            System.out.println("execution time: " + singleThreadedDuration + " ms\n");
 
             for (int numberOfThreads = 1; numberOfThreads <= 8; numberOfThreads++) {
 
                 startTime = System.nanoTime();
                 Apfloat multiThreadedPi = ChudnovskyAlgorithm.calculatePi(precision, numberOfThreads);
-                duration = (System.nanoTime() - startTime);
-                if (duration > 0) {
-                    duration /= 1000000;
+                long multiThreadedDuration = (System.nanoTime() - startTime);
+                if (multiThreadedDuration > 0) {
+                    multiThreadedDuration /= 1000000;
                 }
                 System.out.println("multi-threaded (" + numberOfThreads + " threads) Pi with precision of " + precision + ": " + multiThreadedPi);
-                System.out.println("execution time: " + duration + " ms\n");
+                System.out.println("execution time: " + multiThreadedDuration + " ms");
+                if(singleThreadedDuration > 0 && multiThreadedDuration > 0) {
+                  System.out.println("% speed increase with " + numberOfThreads + " threads, from single threaded: " + String.format("%.2f", 100.0*(1.0 - ((double)multiThreadedDuration/singleThreadedDuration))) + "%\n");
+                }
 
                 assertEquals(singleThreadedPi, multiThreadedPi);
             }
