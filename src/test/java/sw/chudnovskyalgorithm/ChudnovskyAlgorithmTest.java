@@ -30,7 +30,7 @@ public class ChudnovskyAlgorithmTest {
 
     @Test
     public void testDoublePrecision() {
-        assertEquals(Math.PI, ChudnovskyAlgorithm.calculatePi(15l).doubleValue(), Double.MIN_VALUE);
+        assertEquals(new Apfloat(Math.PI), ChudnovskyAlgorithm.calculatePi(15l));
     }
 
     @Test

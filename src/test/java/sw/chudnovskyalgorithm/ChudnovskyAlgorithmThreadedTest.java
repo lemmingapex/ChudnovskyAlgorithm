@@ -34,7 +34,7 @@ public class ChudnovskyAlgorithmThreadedTest {
                 duration /= 1000000;
             }
             System.out.println("single-threaded Pi with precision of " + precision + ": " + singleThreadedPi);
-            System.out.println("execution time: " + duration + "\n");
+            System.out.println("execution time: " + duration + " ms\n");
 
             for (int numberOfThreads = 1; numberOfThreads <= 8; numberOfThreads++) {
 
@@ -45,7 +45,7 @@ public class ChudnovskyAlgorithmThreadedTest {
                     duration /= 1000000;
                 }
                 System.out.println("multi-threaded (" + numberOfThreads + " threads) Pi with precision of " + precision + ": " + multiThreadedPi);
-                System.out.println("execution time: " + duration + "\n");
+                System.out.println("execution time: " + duration + " ms\n");
 
                 assertEquals(singleThreadedPi, multiThreadedPi);
             }
