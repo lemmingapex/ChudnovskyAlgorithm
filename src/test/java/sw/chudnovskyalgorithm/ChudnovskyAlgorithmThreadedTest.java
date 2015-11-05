@@ -25,7 +25,7 @@ public class ChudnovskyAlgorithmThreadedTest {
 
     @Test
     public void testCompareSingleToMultiThreaded() {
-        for (long precision = 1; precision <= Math.pow(2, 17); precision *= 2l) {
+        for (long precision = 1; precision <= Math.pow(2, 15); precision *= 2l) {
 
             long startTime = System.nanoTime();
             Apfloat singleThreadedPi = ChudnovskyAlgorithm.calculatePi(precision);

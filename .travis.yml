@@ -1,2 +1,2 @@
 language: java
-script: travis_wait ./gradlew check -i
+script: ./gradlew check -i
