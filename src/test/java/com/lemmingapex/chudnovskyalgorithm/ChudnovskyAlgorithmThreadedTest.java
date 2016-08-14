@@ -1,4 +1,4 @@
-package sw.chudnovskyalgorithm;
+package com.lemmingapex.chudnovskyalgorithm;
 
 import org.apfloat.Apfloat;
 import org.junit.Test;

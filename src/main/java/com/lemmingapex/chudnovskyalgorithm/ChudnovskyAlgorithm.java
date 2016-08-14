@@ -1,4 +1,4 @@
-package sw.chudnovskyalgorithm;
+package com.lemmingapex.chudnovskyalgorithm;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
